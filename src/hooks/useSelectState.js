@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 export function useSelectState({
   value: controlledValue,
@@ -11,9 +11,11 @@ export function useSelectState({
 
   const value = controlledValue ?? internalValue;
 
-  const select = (index, optionValue) => {
+  const select = (optionValue) => {
     if (controlledValue == null) setInternalValue(optionValue);
     onChange?.(optionValue);
+    setHighlightedIndex(-1); // reset highlight on selection
+    setIsOpen(false); // close menu automatically
   };
 
   const open = () => setIsOpen(true);

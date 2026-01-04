@@ -1,8 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useRef, useEffect } from "react";
+
+let selectIdCounter = 0;
 
 export function useSelectBehavior(state, options = []) {
   const triggerRef = useRef(null);
   const listRef = useRef(null);
+  const listIdRef = useRef(`listbox-${++selectIdCounter}`);
 
   // Trigger props
   const triggerProps = {
@@ -10,34 +13,44 @@ export function useSelectBehavior(state, options = []) {
     tabIndex: 0,
     role: "combobox",
     "aria-expanded": state.isOpen,
-    "aria-controls": "listbox",
-    onClick: () => (state.isOpen ? state.close() : state.open()),
+    "aria-controls": listIdRef.current,
+    "aria-activedescendant":
+      state.highlightedIndex >= 0
+        ? `option-${state.highlightedIndex}`
+        : undefined,
+    onClick: () => {
+      state.isOpen ? state.close() : state.open();
+      if (!state.isOpen) state.setHighlightedIndex(0);
+    },
     onKeyDown: (e) => {
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        state.open();
-        state.setHighlightedIndex(
-          (state.highlightedIndex + 1 + options.length) % options.length
-        );
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        state.open();
-        state.setHighlightedIndex(
-          (state.highlightedIndex - 1 + options.length) % options.length
-        );
-      } else if (e.key === "Enter" || e.key === " ") {
-        // Space included
-        e.preventDefault();
-        if (!state.isOpen) {
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
           state.open();
-          state.setHighlightedIndex(0); // highlight first option by default
-        } else if (state.highlightedIndex >= 0) {
-          const optionValue = options[state.highlightedIndex].value;
-          state.select(state.highlightedIndex, optionValue);
+          state.setHighlightedIndex(
+            (state.highlightedIndex + 1 + options.length) % options.length
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          state.open();
+          state.setHighlightedIndex(
+            (state.highlightedIndex - 1 + options.length) % options.length
+          );
+          break;
+        case "Enter":
+        case " ":
+          e.preventDefault();
+          if (!state.isOpen) {
+            state.open();
+            state.setHighlightedIndex(0);
+          } else if (state.highlightedIndex >= 0) {
+            state.select(options[state.highlightedIndex].value);
+          }
+          break;
+        case "Escape":
           state.close();
-        }
-      } else if (e.key === "Escape") {
-        state.close();
+          break;
       }
     },
   };
@@ -45,22 +58,20 @@ export function useSelectBehavior(state, options = []) {
   // List props
   const listBoxProps = {
     ref: listRef,
-    id: "listbox",
+    id: listIdRef.current,
     role: "listbox",
   };
 
   // Option props
   const getOptionProps = ({ index, item }) => ({
+    id: `option-${index}`,
     role: "option",
     "aria-selected": state.value === item.value,
     onMouseEnter: () => state.setHighlightedIndex(index),
-    onClick: () => {
-      state.select(index, item.value);
-      state.close();
-    },
+    onClick: () => state.select(item.value),
   });
 
-  // Close on outside click
+  // Close menu on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (

@@ -15,6 +15,8 @@ export default function SelectDemo() {
     options
   );
 
+  console.log(state);
+
   return (
     <div>
       <div
