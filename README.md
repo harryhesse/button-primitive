@@ -229,3 +229,172 @@ export default function ButtonDemo() {
 - Keyboard vs pointer focus tracked (`useFocusVisible`) ✅
 - Press events normalized (`usePress`) ✅
 - Hooks are **headless, composable, and ready for Week 3 integration** ✅
+
+# Week 3 — Headless Select Primitive (Part 1)
+
+This week, we build a fully **headless Select component** in React — separating **state**, **behavior**, and later styling. The focus is on **keyboard navigation, controlled vs uncontrolled state, and interaction plumbing**, without worrying about UI.
+
+---
+
+## 🎯 Goals
+
+- Build `useSelectState` to manage Select state
+- Build `useSelectBehavior` to handle interactions (keyboard, click, focus)
+- Support controlled vs uncontrolled Select
+- Implement headless props: `triggerProps`, `listBoxProps`, `getOptionProps`
+- Prepare for Week 4 accessibility enhancements
+
+> No styling yet — only logic.
+
+---
+
+## 1️⃣ `useSelectState` — core state
+
+Manages:
+
+- `value` → currently selected value
+- `isOpen` → dropdown open/close state
+- `highlightedIndex` → keyboard navigation focus inside list
+- Controlled vs uncontrolled mode
+
+```js
+const {
+  value,
+  isOpen,
+  highlightedIndex,
+  setHighlightedIndex,
+  select,
+  open,
+  close,
+} = useSelectState({ defaultValue: "apple", value: controlledValue, onChange });
+```
+
+**Key responsibilities:**
+
+- Handle controlled vs uncontrolled state
+- Track highlighted option for keyboard navigation
+- Open / close management
+- Selecting an option updates state and triggers `onChange`
+
+---
+
+## 2️⃣ `useSelectBehavior` — interaction logic
+
+Adds headless props on top of state:
+
+```js
+const { triggerProps, listBoxProps, getOptionProps } = useSelectBehavior(
+  selectState,
+  options
+);
+```
+
+**Responsibilities:**
+
+- Open/close menu on trigger click
+- Close menu on Escape
+- Keyboard navigation:
+
+  - ArrowUp / ArrowDown → highlight option
+  - Enter → select highlighted option
+
+- Close menu when clicking outside
+- Focus management for trigger & listbox
+
+**Headless props:**
+
+- `triggerProps` → attach to trigger element (div/button)
+- `listBoxProps` → attach to menu container
+- `getOptionProps({ item, index })` → attach to each option
+
+> All logic, no styling assumptions.
+
+---
+
+## 3️⃣ Usage Example
+
+```jsx
+const options = [
+  { label: "Apple", value: "apple" },
+  { label: "Banana", value: "banana" },
+  { label: "Cherry", value: "cherry" },
+];
+
+const state = useSelectState({ defaultValue: "apple" });
+const { triggerProps, listBoxProps, getOptionProps } = useSelectBehavior(
+  state,
+  options
+);
+
+<div>
+  <div {...triggerProps}>{state.value ?? "Select an option"}</div>
+  {state.isOpen && (
+    <ul {...listBoxProps}>
+      {options.map((item, index) => (
+        <li {...getOptionProps({ index, item })}>{item.label}</li>
+      ))}
+    </ul>
+  )}
+</div>;
+```
+
+---
+
+## 4️⃣ Key Principles
+
+- **Headless first** — no styling baked in
+- **State vs behavior separation**:
+
+  - `useSelectState` → state
+  - `useSelectBehavior` → interaction logic
+
+- **Controlled vs uncontrolled** supported
+- **Composable** — same hooks can be used for custom triggers or advanced select variants
+
+---
+
+## 5️⃣ Edge Cases / Notes
+
+- `highlightedIndex` wraps around when pressing ArrowUp / ArrowDown
+- Menu closes on outside clicks via `mousedown` listener
+- Selecting an option always closes the menu
+- Focus is tracked separately from styling — Week 4 will add ARIA & accessibility
+
+---
+
+## 6️⃣ Deliverables
+
+By the end of Week 3:
+
+- `useSelectState` ✅
+- `useSelectBehavior` ✅
+- Fully headless select logic ✅
+- Keyboard navigation & click outside handled ✅
+- Ready for Week 4 accessibility enhancements ✅
+
+```
+
+---
+
+If you want, I can **also make a tiny diagram showing “state → behavior → props → UI” for the Select** like I promised for buttons. It helps **visualize the separation of concerns**, which is exactly what senior-level component design is about.
+
+Do you want me to do that next?
+```
+
+---
+
+## Key Takeaways
+
+- Focus management (`useFocus`) and semantic press (`usePress`) are **separate concerns**
+- Keyboard vs pointer focus is handled by `useFocusVisible`, not `useButton`
+- These hooks are **independent and reusable**, and will later be composed into fully-featured headless primitives
+- `tabIndex` is necessary for non-native interactive elements (`div`, `span`) to receive focus
+
+---
+
+## Status
+
+- Focus state tracked (`useFocus`) ✅
+- Keyboard vs pointer focus tracked (`useFocusVisible`) ✅
+- Press events normalized (`usePress`) ✅
+- Hooks are **headless, composable, and ready for Week 3 integration** ✅

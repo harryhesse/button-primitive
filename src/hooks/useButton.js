@@ -1,39 +1,17 @@
-export function useButton(props) {
-  const { onPress, disabled = false } = props;
+import { usePress } from "./usePress";
+import { useFocusVisible } from "./useFocusVisible";
 
-  const handleClick = (e) => {
-    if (disabled) return;
-    onPress?.(e);
-  };
-  const handleKeyDown = (e) => {
-    if (disabled) return;
-
-    if (e.key === "Enter") {
-      e.preventDefault();
-      onPress?.(e);
-    }
-
-    if (e.key === " ") {
-      e.preventDefault(); // prevent scroll
-    }
-  };
-  const handleKeyUp = (e) => {
-    if (disabled) return;
-
-    if (e.key === " ") {
-      e.preventDefault();
-      onPress?.(e);
-    }
-  };
+export function useButton({ onPress, disabled = false } = {}) {
+  const { pressProps } = usePress({ onPress, disabled });
+  const { isFocusVisible, focusVisibleProps } = useFocusVisible();
 
   const buttonProps = {
+    ...pressProps,
+    ...focusVisibleProps,
     role: "button",
     tabIndex: disabled ? -1 : 0,
     "aria-disabled": disabled || undefined,
-    onClick: handleClick,
-    onKeyDown: handleKeyDown,
-    onKeyUp: handleKeyUp,
   };
 
-  return { buttonProps };
+  return { buttonProps, isFocusVisible };
 }
