@@ -372,15 +372,6 @@ By the end of Week 3:
 - Keyboard navigation & click outside handled ✅
 - Ready for Week 4 accessibility enhancements ✅
 
-```
-
----
-
-If you want, I can **also make a tiny diagram showing “state → behavior → props → UI” for the Select** like I promised for buttons. It helps **visualize the separation of concerns**, which is exactly what senior-level component design is about.
-
-Do you want me to do that next?
-```
-
 ---
 
 ## Key Takeaways
@@ -398,3 +389,238 @@ Do you want me to do that next?
 - Keyboard vs pointer focus tracked (`useFocusVisible`) ✅
 - Press events normalized (`usePress`) ✅
 - Hooks are **headless, composable, and ready for Week 3 integration** ✅
+
+# Week 4 — Accessibility & ARIA Meditations
+
+This week, the focus is on **making the headless Select fully accessible** without touching the UI layer. The goal is to ensure that keyboard users, screen readers, and assistive technologies can interact correctly with our primitive components.
+
+---
+
+## 🌟 Key Goals
+
+- Apply proper ARIA roles and attributes
+- Ensure keyboard navigation works as expected
+- Keep state & behavior separate
+- Maintain headless, reusable hooks
+
+---
+
+## ✅ Achievements
+
+### 1. ARIA Roles & Attributes
+
+- Trigger element:
+  - `role="combobox"`
+  - `aria-expanded={state.isOpen}`
+  - `aria-controls="listbox"`
+  - `aria-activedescendant={state.highlightedIndex >= 0 ? "option-${index}" : undefined}`
+- List element:
+  - `role="listbox"`
+- Options:
+  - `role="option"`
+  - `aria-selected={state.value === option.value}`
+
+These ensure **screen readers announce the correct element states** and selected options.
+
+---
+
+### 2. Keyboard Navigation
+
+- `ArrowUp` / `ArrowDown` → move highlighted index
+- `Enter` / `Space` → select option
+- `Escape` → close menu
+- Highlight wraps around start/end
+
+> Keyboard users can now interact with the Select **without a mouse**.
+
+---
+
+### 3. Focus Management
+
+- `useFocus` tracks focus state ✅
+- `useFocusVisible` tracks keyboard vs pointer focus ✅
+- Trigger element is focusable with `tabIndex={0}` ✅
+
+> Users see focus outlines **only when using keyboard**, matching `:focus-visible` behavior.
+
+---
+
+### 4. Click Outside Handling
+
+- Clicking outside the trigger or list closes the menu ✅
+- Highlight updates on hover ✅
+- Clicking an option selects it and closes menu ✅
+
+> Pointer interactions now match native select behavior.
+
+---
+
+### 5. Headless Separation
+
+- `useSelectState` → state only
+- `useSelectBehavior` → interaction logic only
+- Styling is **fully separate**
+- Controlled vs uncontrolled mode supported ✅
+
+> This separation allows **flexible composition** in future components.
+
+---
+
+## 🔑 Takeaways
+
+- Accessibility is **non-negotiable** even for headless components.
+- ARIA roles and attributes bridge **state & behavior with assistive tech**.
+- Focus management and keyboard navigation are separate but essential primitives.
+- Headless design makes it easier to **add styling later** without breaking accessibility.
+
+# Week 5 — Styling Layer Meditations
+
+This week focuses on adding a **visual styling layer** on top of fully headless, accessible primitives built in previous weeks.
+The goal is not to design a UI kit, but to **prove that logic and presentation are truly separated**.
+
+By this point, all behavior, state, keyboard handling, and accessibility concerns are already solved. Styling is now a **pure consumer concern**.
+
+---
+
+## 🎯 Goals
+
+- Add visual styling without modifying headless logic
+- Use CSS variables (design tokens) for theming
+- Implement hover, focus-visible, and selected states
+- Preserve accessibility and keyboard behavior
+- Keep components composable and framework-agnostic
+
+---
+
+## 🧠 Core Principle
+
+> **Headless components should never know how they look.**
+
+All hooks (`usePress`, `useFocusVisible`, `useSelectState`, `useSelectBehavior`) remain unchanged.
+Styling is applied **only at the usage layer**.
+
+This mirrors how real-world libraries (Radix, React Aria, Headless UI) scale.
+
+---
+
+## 🎨 Design Tokens (CSS Variables)
+
+A small set of CSS variables defines the visual language:
+
+```css
+:root {
+  --color-bg: white;
+  --color-border: #ccc;
+  --color-primary: #0077ff;
+  --color-hover: #f0f0f0;
+  --color-selected: #eee;
+
+  --focus-outline: 2px solid var(--color-primary);
+  --radius: 4px;
+  --spacing: 8px;
+}
+```
+
+### Why CSS Variables?
+
+- Themeable without touching JS
+- Centralized design decisions
+- Easy to override per app or component
+- Keeps logic 100% UI-agnostic
+
+---
+
+## 🔘 Button Styling
+
+The Button is styled by **wrapping** the headless hooks:
+
+- `usePress` → handles semantic press
+- `useFocusVisible` → controls focus outline visibility
+
+Visual concerns added:
+
+- Padding, border, background
+- Hover feedback
+- Focus-visible outline
+- Pointer cursor
+
+The button remains:
+
+- Keyboard accessible
+- Screen-reader friendly
+- Fully reusable across elements (`div`, `span`, `button`)
+
+---
+
+## 🔽 Select Styling
+
+The Select component applies styling to:
+
+- Trigger
+- Listbox
+- Options
+
+Visual states include:
+
+- Highlighted option
+- Selected option
+- Hover state
+- Open/closed trigger outline
+
+### Important:
+
+- Highlighting is driven by `highlightedIndex`
+- Selection is driven by `value`
+- Styling does not affect logic
+
+The Select remains:
+
+- Fully headless
+- Fully accessible
+- Keyboard and pointer friendly
+
+---
+
+## ♿ Accessibility Preserved
+
+Styling does **not interfere** with accessibility:
+
+- Focus-visible outline appears only for keyboard users
+- ARIA roles and attributes remain intact
+- Keyboard navigation works identically
+- Screen readers announce correct states
+
+This proves accessibility was baked in **before styling**, not added later.
+
+---
+
+## 🧩 Separation of Concerns (Final Proof)
+
+| Layer         | Responsibility                  |
+| ------------- | ------------------------------- |
+| Hooks         | State, events, accessibility    |
+| Behavior      | Keyboard & pointer interactions |
+| Styling       | Visual appearance only          |
+| CSS Variables | Theming & design system         |
+
+Each layer can evolve independently.
+
+---
+
+## 🔑 Key Takeaways
+
+- Styling is the **last concern**, not the first
+- Headless components scale better long-term
+- CSS variables are powerful design primitives
+- Accessibility survives styling when done correctly
+- This architecture mirrors real production libraries
+
+---
+
+## 🚦 Status
+
+- Button styled without logic changes ✅
+- Select styled without logic changes ✅
+- Focus-visible and hover states implemented ✅
+- Design tokens introduced ✅
+- Ready for Week 6 polish & documentation ✅
