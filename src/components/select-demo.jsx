@@ -30,6 +30,7 @@ export default function SelectDemo() {
         >
           {options.map((item, index) => (
             <li
+              key={item.value}
               {...getOptionProps({ index, item })}
               style={{
                 padding: "8px",

@@ -15,21 +15,27 @@ export function useSelectBehavior(state, options = []) {
     onKeyDown: (e) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        state.setHighlightedIndex(
-          (state.highlightedIndex + 1) % options.length
-        );
         state.open();
+        state.setHighlightedIndex(
+          (state.highlightedIndex + 1 + options.length) % options.length
+        );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
+        state.open();
         state.setHighlightedIndex(
           (state.highlightedIndex - 1 + options.length) % options.length
         );
-        state.open();
-      } else if (e.key === "Enter" && state.highlightedIndex >= 0) {
+      } else if (e.key === "Enter" || e.key === " ") {
+        // Space included
         e.preventDefault();
-        const optionValue = options[state.highlightedIndex].value;
-        state.select(state.highlightedIndex, optionValue);
-        state.close();
+        if (!state.isOpen) {
+          state.open();
+          state.setHighlightedIndex(0); // highlight first option by default
+        } else if (state.highlightedIndex >= 0) {
+          const optionValue = options[state.highlightedIndex].value;
+          state.select(state.highlightedIndex, optionValue);
+          state.close();
+        }
       } else if (e.key === "Escape") {
         state.close();
       }
@@ -45,7 +51,6 @@ export function useSelectBehavior(state, options = []) {
 
   // Option props
   const getOptionProps = ({ index, item }) => ({
-    key: item.value,
     role: "option",
     "aria-selected": state.value === item.value,
     onMouseEnter: () => state.setHighlightedIndex(index),
